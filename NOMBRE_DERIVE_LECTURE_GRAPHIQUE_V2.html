@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracé de Courbe - Version Finale et Ergonomique</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #graph-container {
+            position: relative;
+            border: 1px solid #ccc;
+        }
+        #myCanvas {
+            display: block;
+        }
+        /* Styles pour les labels */
+        .mathjax-label {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 10;
+        }
+        #pointLabel {
+            font-size: 1.1em;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            color: #17a2b8; /* Bleu pour le point A */
+            font-weight: bold;
+        }
+        
+        /* Conteneurs de solutions */
+        #tangentInfo, #detailedSolution {
+            font-size: 0.9em;
+            margin-top: 15px; 
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            width: 80%;
+            text-align: left;
+            display: none; 
+        }
+
+        #tangentInfo {
+            color: #4CAF50; /* Vert pour la réponse simple */
+            border: 1px solid #4CAF50;
+        }
+
+        #detailedSolution {
+            border: 1px solid #007bff; /* Bleu pour la solution détaillée */
+            background-color: #f0f8ff;
+            color: #333;
+        }
+
+        /* Styles spécifiques à l'énoncé */
+        .enonce-style {
+            background-color: #f7f7f7;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            width: 80%;
+            margin-bottom: 15px;
+            text-align: left;
+            display: none; 
+            font-size: 1.1em;
+        }
+        
+        /* Styles spécifiques aux droits d'auteur */
+        .copyright-style {
+            background-color: #ffe0b2; /* Orange très clair */
+            padding: 15px;
+            border: 1px solid #ff9800; /* Orange */
+            border-radius: 5px;
+            width: 80%;
+            margin-top: 20px;
+            text-align: left;
+            display: none; 
+            font-size: 0.9em;
+            color: #333;
+        }
+
+        /* Conteneur des boutons principaux */
+        .controls-container {
+            display: flex; 
+            gap: 10px; 
+            margin-top: 10px;
+        }
+        
+        /* Conteneur spécifique au bouton B et ses coordonnées */
+        .b-control-group {
+             display: flex; 
+             flex-direction: column; 
+             align-items: center;
+             padding-bottom: 10px;
+        }
+
+        #toggleEnonceButton {
+            background-color: #ffc107; /* Jaune */
+            color: black;
+            border: none;
+            margin-bottom: 10px;
+        }
+        
+        #toggleBButton {
+            background-color: #007bff; 
+            color: white;
+            border: none;
+        }
+        
+        #showAnswerButton, #showDetailedSolutionButton {
+            color: white;
+            border: none;
+        }
+
+        #showAnswerButton {
+            background-color: #f0ad4e; /* Orange */
+        }
+
+        #showDetailedSolutionButton {
+            background-color: #28a745; /* Vert pour le détaillé */
+        }
+
+        #toggleCopyrightButton {
+            background-color: #6c757d; /* Gris pour les droits */
+            color: white;
+            border: none;
+            margin-top: 5px; /* Petit espace après le nom de l'auteur */
+        }
+
+        /* Style de la signature de l'auteur */
+        #authorSignature {
+            margin-top: 20px;
+            font-style: italic;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        
+        /* Style des coordonnées de B */
+        #bCoordsDisplay {
+            font-size: 1.1em;
+            color: #4CAF50; 
+            font-weight: bold;
+        }
+
+        /* Styles pour les étapes didactiques */
+        .step {
+            margin-bottom: 15px;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        .step-explanation {
+            font-style: italic;
+            color: #555;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+
+    <script type="text/javascript" async
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']], processClass: "mathjax-label"}
+        });
+    </script>
+</head>
+<body>
+
+    <h1 id="function-display">Chargement de la fonction...</h1>
+    
+    <div>
+        <button onclick="regenerateGraph()">Nouvelle Courbe Aléatoire</button>
+    </div>
+
+    <div id="enonceContainer">
+        <button id="toggleEnonceButton" onclick="toggleEnonce()">Afficher l'Énoncé</button>
+        <div id="enonceDisplay" class="enonce-style"></div>
+    </div>
+    
+    <div id="graph-container">
+        
+        <div id="originLabel" class="mathjax-label"></div>
+        <canvas id="myCanvas" width="500" height="500"></canvas>
+    </div>
+    
+    <div id="pointLabel"></div>
+    
+    <div class="controls-container">
+        
+        <div class="b-control-group">
+            <button id="toggleBButton" onclick="togglePointB()">Afficher un Point B</button>
+            <span id="bCoordsDisplay" style="display: none; margin-top: 5px;"></span> 
+        </div>
+        
+        <button id="showAnswerButton" onclick="toggleAnswer()">Réponse argumentée</button>
+        <button id="showDetailedSolutionButton" onclick="toggleDetailedSolution()">Solution détaillée</button>
+    </div>
+    
+    <div id="tangentInfo"></div>
+    <div id="detailedSolution"></div>
+
+    <div id="authorSignature">Auteur : Yann Merdy (Novembre 2025)</div>
+
+    <button id="toggleCopyrightButton" onclick="toggleCopyright()">Afficher/Masquer les Droits d'Auteur</button>
+
+    <div id="copyrightDisplay" class="copyright-style">
+        <h3>&#128680; Avertissement - Droits d'Auteur (Livre I, Titre II du Code de la propriété intellectuelle)</h3>
+        Le contenu de ce document, y compris le code JavaScript et les fonctions de génération d'exercices, est protégé par le droit d'auteur. Toute reproduction ou utilisation sans l'accord écrit de l'auteur est strictement interdite.
+        <ul>
+            <li>Article L.111-1 : L'auteur d'une oeuvre de l'esprit jouit sur cette oeuvre, du seul fait de sa création, d'un droit de propriété incorporelle exclusif et opposable à tous.</li>
+            <li>Article L.122-4 : Toute représentation ou reproduction intégrale ou partielle faite sans le consentement de l'auteur ou de ses ayants droit ou ayants cause est illicite. Il en est de même pour la traduction, l'adaptation ou la transformation, l'arrangement ou la reproduction par un art ou un procédé quelconque.</li>
+            <li>Article L.335-2 (Sanctions) : La contrefaçon en France est un délit puni de trois ans d'emprisonnement et de 300 000 euros d'amende.</li>
+        </ul>
+        Pour toute demande d'autorisation de reproduction ou de diffusion, veuillez contacter l'auteur (yann.merdy@gmail.com).
+    </div>
+
+
+    <script>
+        // --- Configuration du Canvas et du Repère (inchangée) ---
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+        const SCALE = 25; 
+        const CENTER_X = WIDTH / 2;
+        const CENTER_Y = HEIGHT / 2;
+        const RANGE = WIDTH / 2 / SCALE; 
+        const GRID_STEP_FINE = 1; 
+        const GRID_STEP_MAJOR = 5;
+        const FINE_GRID_COLOR = '#ddd'; 
+        const MAJOR_GRID_COLOR = '#ccc'; 
+        const AXIS_COLOR = '#000'; 
+        const CURVE_COLOR = '#d9534f'; 
+        const ORIGIN_COLOR = '#007bff'; 
+        const POINT_COLOR = '#17a2b8';
+        const TANGENT_COLOR = '#4CAF50'; 
+        const CURVE_THICKNESS = 2;
+        const SAFE_TOLERANCE = 0.5; 
+        const MIN_DISTANCE_AB = 2; 
+        const PRECISION_TANGENT = 0.01; 
+        
+        // --- Tableau de fonctions (inchangée) ---
+        const FUNCTION_TYPES = [
+            'polynomial1',   
+            'polynomial2',   
+            'polynomial2',   
+            'polynomial2',   
+            'polynomial3',   
+            'polynomial3',   
+            'polynomial3',   
+            'homographic',   
+            'homographic',   
+        ];
+        
+        // --- Constantes pour le texte des boutons (MISE À JOUR) ---
+        const TEXT_SHOW_B = 'Afficher un Point B';
+        const TEXT_HIDE_B = 'Masquer le Point B';
+        const TEXT_SHOW_ENONCE = 'Afficher l\'Énoncé';
+        const TEXT_HIDE_ENONCE = 'Masquer l\'Énoncé';
+        const TEXT_SHOW_ANSWER = 'Réponse argumentée';
+        const TEXT_HIDE_ANSWER = 'Masquer la Réponse';
+        const TEXT_SHOW_DETAILED = 'Solution détaillée';
+        const TEXT_HIDE_DETAILED = 'Masquer la Solution';
+        const TEXT_SHOW_COPYRIGHT = 'Afficher les Droits d\'Auteur';
+        const TEXT_HIDE_COPYRIGHT = 'Masquer les Droits d\'Auteur';
+        
+        // --- Énoncés (inchangé) ---
+        const ENONCES = [
+            "Question 1 : Déterminer $f'(x_A)$<br>Question 2 : En déduire l'équation réduite de la tangente à la courbe représentative de $f$ au point $A$.",
+            "Question 1 : Déterminer $f'(x_A)$<br>Question 2 : En déduire l'équation réduite de la tangente à la courbe représentative de $f$ au point d'abscisse $x_A$.",
+            "Déterminer l'équation réduite de la tangente à la courbe représentative de $f$ au point $A$.",
+            "Déterminer l'équation réduite de la tangente à la courbe représentative de $f$ au point d'abscisse $x_A$.",
+            "La droite est la tangente à la courbe au point $A$.<br>Question 1 : Déterminer le coefficient directeur de la droite passant par $A$ et l'ordonnée à l'origine de cette droite.<br>Question 2 : Que représente ce coefficient directeur ?",
+            "La droite est la tangente à la courbe au point d'abscisse $x_A$.<br>Question 1 : Déterminer le coefficient directeur de la droite passant par $A$ et l'ordonnée à l'origine de cette droite.<br>Question 2 : Que représente ce coefficient directeur ?"
+        ];
+
+
+        // Variables globales (MISE À JOUR)
+        let currentFunction = (x) => 0; 
+        let currentDerivative = (x) => 0; 
+        let currentParams = {};
+        let selectedPoint = { x: 0, y: 0, m: 0, m_facile: 0, B: {x: 0, y: 0} }; 
+        let isBVisible = false;      
+        let isAnswerVisible = false; 
+        let isDetailedVisible = false; 
+        let isEnonceVisible = false; 
+        let isCopyrightVisible = false; 
+        let currentEnonceIndex = 0;  
+        let initialSetupDone = false; 
+
+        // --- Logique des Boutons de Toggle (MISE À JOUR) ---
+        
+        function selectRandomEnonce() {
+            currentEnonceIndex = Math.floor(Math.random() * ENONCES.length);
+            displayEnonce();
+        }
+
+        function displayEnonce() {
+            const enonceDiv = document.getElementById('enonceDisplay');
+            enonceDiv.innerHTML = ENONCES[currentEnonceIndex];
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "enonceDisplay"]);
+        }
+        
+        function toggleEnonce() {
+            isEnonceVisible = !isEnonceVisible;
+            const enonceDiv = document.getElementById('enonceDisplay');
+            const button = document.getElementById('toggleEnonceButton');
+            
+            if (isEnonceVisible) {
+                enonceDiv.style.display = 'block';
+                button.textContent = TEXT_HIDE_ENONCE;
+                button.style.backgroundColor = '#dc3545'; 
+                button.style.color = 'white';
+            } else {
+                enonceDiv.style.display = 'none';
+                button.textContent = TEXT_SHOW_ENONCE;
+                button.style.backgroundColor = '#ffc107'; 
+                button.style.color = 'black';
+            }
+        }
+
+        // NOUVELLE FONCTION DE TOGGLE
+        function toggleCopyright() {
+            isCopyrightVisible = !isCopyrightVisible;
+            const copyrightDiv = document.getElementById('copyrightDisplay');
+            const button = document.getElementById('toggleCopyrightButton');
+            
+            if (isCopyrightVisible) {
+                copyrightDiv.style.display = 'block';
+                button.textContent = TEXT_HIDE_COPYRIGHT;
+                button.style.backgroundColor = '#dc3545'; // Rouge
+            } else {
+                copyrightDiv.style.display = 'none';
+                button.textContent = TEXT_SHOW_COPYRIGHT;
+                button.style.backgroundColor = '#6c757d'; // Gris
+            }
+        }
+
+
+        function togglePointB() {
+            isBVisible = !isBVisible; 
+            const button = document.getElementById('toggleBButton');
+            const coordsDisplay = document.getElementById('bCoordsDisplay');
+            
+            if (isBVisible) {
+                button.textContent = TEXT_HIDE_B; 
+                button.style.backgroundColor = '#5cb85c'; 
+                coordsDisplay.style.display = 'block';
+            } else {
+                button.textContent = TEXT_SHOW_B;
+                button.style.backgroundColor = '#007bff'; 
+                coordsDisplay.style.display = 'none';
+            }
+            
+            drawGraph(); 
+        }
+
+        function toggleAnswer() {
+            isAnswerVisible = !isAnswerVisible;
+            isDetailedVisible = false; 
+
+            const answerDiv = document.getElementById('tangentInfo');
+            const detailedDiv = document.getElementById('detailedSolution');
+            const button = document.getElementById('showAnswerButton');
+            const detailedButton = document.getElementById('showDetailedSolutionButton');
+
+            if (isAnswerVisible) {
+                answerDiv.style.display = 'block';
+                button.textContent = TEXT_HIDE_ANSWER;
+                button.style.backgroundColor = '#d9534f'; 
+                detailedDiv.style.display = 'none';
+                detailedButton.textContent = TEXT_SHOW_DETAILED;
+                detailedButton.style.backgroundColor = '#28a745';
+            } else {
+                answerDiv.style.display = 'none';
+                button.textContent = TEXT_SHOW_ANSWER;
+                button.style.backgroundColor = '#f0ad4e'; 
+            }
+        }
+        
+        function toggleDetailedSolution() {
+            isDetailedVisible = !isDetailedVisible;
+            isAnswerVisible = false; 
+
+            const answerDiv = document.getElementById('tangentInfo');
+            const detailedDiv = document.getElementById('detailedSolution');
+            const button = document.getElementById('showDetailedSolutionButton');
+            const answerButton = document.getElementById('showAnswerButton');
+            
+            if (isDetailedVisible) {
+                displayDetailedSolution(selectedPoint); 
+                detailedDiv.style.display = 'block';
+                button.textContent = TEXT_HIDE_DETAILED;
+                button.style.backgroundColor = '#dc3545'; 
+                answerDiv.style.display = 'none';
+                answerButton.textContent = TEXT_SHOW_ANSWER;
+                answerButton.style.backgroundColor = '#f0ad4e';
+            } else {
+                detailedDiv.style.display = 'none';
+                button.textContent = TEXT_SHOW_DETAILED;
+                button.style.backgroundColor = '#28a745'; 
+            }
+        }
+
+
+        function resetState() { // MISE À JOUR de resetState
+            isBVisible = false;
+            isAnswerVisible = false;
+            isDetailedVisible = false;
+            isEnonceVisible = false; 
+            isCopyrightVisible = false; 
+            
+            // Réinitialisation des boutons et conteneurs
+            document.getElementById('toggleEnonceButton').textContent = TEXT_SHOW_ENONCE;
+            document.getElementById('toggleEnonceButton').style.backgroundColor = '#ffc107';
+            document.getElementById('toggleEnonceButton').style.color = 'black';
+            document.getElementById('enonceDisplay').style.display = 'none';
+
+            document.getElementById('toggleCopyrightButton').textContent = TEXT_SHOW_COPYRIGHT;
+            document.getElementById('toggleCopyrightButton').style.backgroundColor = '#6c757d'; 
+            document.getElementById('copyrightDisplay').style.display = 'none'; 
+
+            document.getElementById('toggleBButton').textContent = TEXT_SHOW_B; 
+            document.getElementById('toggleBButton').style.backgroundColor = '#007bff';
+            
+            document.getElementById('showAnswerButton').textContent = TEXT_SHOW_ANSWER;
+            document.getElementById('showAnswerButton').style.backgroundColor = '#f0ad4e';
+
+            document.getElementById('showDetailedSolutionButton').textContent = TEXT_SHOW_DETAILED;
+            document.getElementById('showDetailedSolutionButton').style.backgroundColor = '#28a745';
+            
+            document.getElementById('tangentInfo').style.display = 'none';
+            document.getElementById('detailedSolution').style.display = 'none';
+            document.getElementById('bCoordsDisplay').style.display = 'none'; 
+        }
+
+
+        // --- Fonctions Mathématiques Aléatoires (inchangées) ---
+
+        function getRandomInteger(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function selectRandomFunction() {
+            const funcType = FUNCTION_TYPES[Math.floor(Math.random() * FUNCTION_TYPES.length)];
+            
+            let a, b, c, d;
+
+            switch (funcType) {
+                case 'polynomial1':
+                    a = getRandomInteger(-3, 3); 
+                    if (Math.random() < 0.8) { 
+                        while (a === 0) { a = getRandomInteger(-3, 3); }
+                    } else if (a === 0) {
+                       a = 0; 
+                    }
+                    b = getRandomInteger(-5, 5);
+                    currentParams = { a, b, type: 'polynomial1' };
+                    currentFunction = (x) => a * x + b;
+                    // Dérivée P1: a
+                    currentDerivative = (x) => a; 
+                    break;
+                    
+                case 'polynomial2':
+                    do { a = getRandomInteger(-1, 1); } while (a === 0);
+                    b = getRandomInteger(-3, 3);
+                    c = getRandomInteger(-4, 4);
+                    currentParams = { a, b, c, type: 'polynomial2' };
+                    currentFunction = (x) => a * x * x + b * x + c;
+                    // Dérivée P2: 2ax + b
+                    currentDerivative = (x) => 2 * a * x + b; 
+                    break;
+                    
+                case 'polynomial3':
+                    do { a = getRandomInteger(-1, 1); } while (a === 0);
+                    b = getRandomInteger(-1, 1);
+                    c = getRandomInteger(-3, 3);
+                    d = getRandomInteger(-3, 3);
+                    
+                    if (a === 0 && b === 0 && c === 0 && d === 0) { d = getRandomInteger(1, 3); } 
+                    else if (a !== 0) { a = a > 0 ? 1 : -1; }
+                    currentParams = { a, b, c, d, type: 'polynomial3' };
+                    currentFunction = (x) => a * x * x * x + b * x * x + c * x + d;
+                    // Dérivée P3: 3ax^2 + 2bx + c (comme demandé)
+                    currentDerivative = (x) => 3 * a * x * x + 2 * b * x + c;
+                    break;
+                    
+                case 'homographic':
+                    do { c = getRandomInteger(-3, 3); } while (c === 0);
+                    a = getRandomInteger(-3, 3);
+                    b = getRandomInteger(-5, 5);
+                    d = getRandomInteger(-5, 5);
+                    
+                    const singularite = -d / c;
+                    if (Math.abs(singularite) < SAFE_TOLERANCE) { 
+                        d = getRandomInteger(3, 5) * (c > 0 ? -1 : 1);
+                    } else if (Math.abs(singularite) > RANGE - 1) {
+                        d = getRandomInteger(1, 3) * (c > 0 ? -1 : 1);
+                    }
+                    
+                    if (a * d - b * c === 0) { a = getRandomInteger(-3, 3); }
+
+                    currentParams = { a, b, c, d, type: 'homographic' };
+                    currentFunction = (x) => {
+                        const denominator = c * x + d;
+                        if (Math.abs(denominator) < 1e-6) { return NaN; }
+                        return (a * x + b) / denominator;
+                    };
+                    const det = a * d - b * c;
+                    // Dérivée Homographique: (ad-bc)/(cx+d)^2 (comme demandé)
+                    currentDerivative = (x) => {
+                         const denominator = c * x + d;
+                         if (Math.abs(denominator) < 1e-6) { return NaN; }
+                         return det / (denominator * denominator);
+                    };
+                    break;
+            }
+            displayFunctionInHeading(funcType, currentParams);
+        }
+        
+        // --- Fonctions d'Affichage de la fonction (inchangées) ---
+        function displayFunctionInHeading(type, params) {
+            const heading = document.getElementById('function-display');
+            const { a, b, c, d } = params;
+            
+            const formatCoeff = (val, variable, isFirstTerm) => {
+                if (val === 0) return '';
+                
+                const sign = val > 0 ? (isFirstTerm ? '' : ' + ') : ' - ';
+                const absVal = Math.abs(val);
+                
+                let term = '';
+                if (variable) {
+                    term = (absVal === 1 && variable !== 'x^0' ? '' : absVal) + variable;
+                } else {
+                    term = absVal.toString();
+                }
+
+                return sign + term;
+            };
+
+            let latex;
+            
+            switch (type) {
+                case 'polynomial1':
+                    let p1_terms = [];
+                    if (a !== 0) p1_terms.push(formatCoeff(a, 'x', p1_terms.length === 0));
+                    if (b !== 0) p1_terms.push(formatCoeff(b, '', p1_terms.length === 0));
+                    
+                    latex = `f(x) = ${p1_terms.join('').trim()}`;
+                    if (latex === 'f(x) =') latex = 'f(x) = 0';
+                    break;
+                    
+                case 'polynomial2':
+                    let p2_terms = [];
+                    if (a !== 0) p2_terms.push(formatCoeff(a, 'x^2', p2_terms.length === 0));
+                    if (b !== 0) p2_terms.push(formatCoeff(b, 'x', p2_terms.length === 0));
+                    if (c !== 0) p2_terms.push(formatCoeff(c, '', p2_terms.length === 0));
+                    
+                    latex = `f(x) = ${p2_terms.join('').trim()}`;
+                    if (latex === 'f(x) =') latex = 'f(x) = 0';
+                    break;
+                    
+                case 'polynomial3':
+                    let p3_terms = [];
+                    if (a !== 0) p3_terms.push(formatCoeff(a, 'x^3', p3_terms.length === 0));
+                    if (b !== 0) p3_terms.push(formatCoeff(b, 'x^2', p3_terms.length === 0));
+                    if (c !== 0) p3_terms.push(formatCoeff(c, 'x', p3_terms.length === 0));
+                    if (d !== 0) p3_terms.push(formatCoeff(d, '', p3_terms.length === 0));
+
+                    latex = `f(x) = ${p3_terms.join('').trim()}`;
+                    if (latex === 'f(x) =') latex = 'f(x) = 0';
+                    break;
+                    
+                case 'homographic':
+                    const num_terms = [];
+                    if (a !== 0) num_terms.push(formatCoeff(a, 'x', num_terms.length === 0));
+                    if (b !== 0) num_terms.push(formatCoeff(b, '', num_terms.length === 0));
+
+                    const den_terms = [];
+                    if (c !== 0) den_terms.push(formatCoeff(c, 'x', den_terms.length === 0));
+                    if (d !== 0) den_terms.push(formatCoeff(d, '', den_terms.length === 0));
+                    
+                    let num_str = num_terms.join('').trim();
+                    let den_str = den_terms.join('').trim();
+                    
+                    if (num_str.startsWith('- ')) num_str = '-' + num_str.substring(2);
+                    if (den_str.startsWith('- ')) den_str = '-' + den_str.substring(2);
+
+                    latex = `f(x) = \\frac{${num_str}}{${den_str}}`;
+                    break;
+                default:
+                    latex = 'f(x) = 0';
+            }
+            
+            latex = latex.replace(/ \+ \-/g, ' - ').replace(/\-\-/g, '+').replace(/\+ \+/g, '+');
+            
+            heading.innerHTML = `Courbe tracée : \\(${latex}\\)`;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "function-display"]);
+        }
+
+        /**
+         * Logique de sélection des points (inchangée)
+         */
+        const EASY_SLOPES = [-3, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3];
+        const SLOPE_TOLERANCE = 0.05; 
+
+        function selectTangentPoint() {
+            const possibleXValues = [];
+            for (let i = -RANGE * 10; i <= RANGE * 10; i++) {
+                possibleXValues.push(i / 10);
+            }
+            
+            const visiblePointsWithTangents = [];
+            
+            let singularite = NaN;
+            if (currentParams.type === 'homographic') {
+                singularite = -currentParams.d / currentParams.c;
+            }
+            
+            for (const x of possibleXValues) {
+                
+                if (!isNaN(singularite) && Math.abs(x - singularite) < SAFE_TOLERANCE) {
+                    continue; 
+                }
+
+                const y = currentFunction(x);
+                const m_real = currentDerivative(x); 
+                
+                if (isNaN(y) || isNaN(m_real) || y < -RANGE || y > RANGE) { continue; }
+                
+                for (const easyM of EASY_SLOPES) {
+                    // Vérifie que la pente réelle est très proche de la pente facile
+                    if (Math.abs(m_real - easyM) < SLOPE_TOLERANCE) {
+                        
+                        const m_facile = easyM; 
+                        const searchRange = 5; 
+                        
+                        for (let xB = Math.floor(x - searchRange); xB <= Math.ceil(x + searchRange); xB++) {
+                            
+                            if (Math.abs(xB - x) < MIN_DISTANCE_AB) {
+                                continue; 
+                            }
+                            
+                            // Utilisation de m_facile pour trouver un point B tombant sur une coordonnée entière (yB_candidat)
+                            const y_tangent_at_xB = m_facile * (xB - x) + y;
+                            const yB_candidat = Math.round(y_tangent_at_xB); 
+                            
+                            if (Math.abs(y_tangent_at_xB - yB_candidat) < PRECISION_TANGENT) { 
+                                
+                                if (xB >= -RANGE && xB <= RANGE && yB_candidat >= -RANGE && yB_candidat <= RANGE) {
+                                    
+                                    visiblePointsWithTangents.push({
+                                        x: x, 
+                                        y: y, 
+                                        m: m_real, 
+                                        m_facile: m_facile, 
+                                        B: { x: xB, y: yB_candidat }
+                                    });
+                                    
+                                    break; 
+                                }
+                            }
+                        }
+                        if (visiblePointsWithTangents.length > 0 && visiblePointsWithTangents[visiblePointsWithTangents.length - 1].x === x) {
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (visiblePointsWithTangents.length > 0) {
+                 const bestCandidate = visiblePointsWithTangents[Math.floor(Math.random() * visiblePointsWithTangents.length)];
+                 selectedPoint = {
+                    x: parseFloat(bestCandidate.x.toFixed(1)), 
+                    y: parseFloat(bestCandidate.y.toFixed(6)), 
+                    m: parseFloat(bestCandidate.m.toFixed(6)), 
+                    m_facile: bestCandidate.m_facile, 
+                    B: bestCandidate.B
+                 };
+            } else {
+                // Si aucun point cohérent n'est trouvé, force la relance.
+                if (initialSetupDone) {
+                     console.warn("Aucun point de grille B trouvé pour la tangente. Tentative de régénération de la courbe...");
+                     throw new Error("No valid point B found, retrying."); 
+                } else {
+                    console.error("Échec de la recherche du point initial. Réessayez manuellement.");
+                    return; 
+                }
+            }
+            
+            displayPointAbscissa(selectedPoint);
+            displayTangentInfo(selectedPoint); 
+            displayBCoords(selectedPoint.B);
+        }
+        
+        // --- Fonctions de Formatage pour la Solution Détaillée (inchangées) ---
+
+        /**
+         * Met une valeur entre parenthèses si elle est négative.
+         * @param {number} val La valeur numérique.
+         * @returns {string} La chaîne de caractères formatée.
+         */
+        function formatValueWithParentheses(val) {
+            if (val < 0) {
+                return `(${val})`;
+            }
+            return val.toString();
+        }
+        
+        /**
+         * Formate la valeur d'une coordonnée pour la substitution.
+         */
+        function formatCoordForDifference(val, is_xA) {
+            let precision = 3;
+            if (is_xA) {
+                precision = val % 1 === 0 ? 0 : 1;
+            }
+            
+            const val_str = val.toFixed(precision);
+            if (val < 0) {
+                return `(${val_str})`;
+            }
+            return val_str; 
+        }
+
+        /**
+         * Génère la chaîne de caractères de l'expression f(xA) pour le calcul didactique.
+         */
+        function getFunctionValueCalculation(x, params) {
+            const { a, b, c, d, type } = params;
+            const xTerm = formatValueWithParentheses(x);
+            
+            let parts = [];
+            
+            // Helper pour formater un terme polynomial (ax^n)
+            const formatPolynomialTerm = (coeff, power, isFirstTerm) => {
+                if (coeff === 0 && power !== 0) return ''; 
+                
+                let absCoeff = Math.abs(coeff);
+                
+                let coeffStr = (absCoeff === 1 && power !== 0) ? '' : absCoeff.toString();
+                
+                let termStr;
+                
+                if (power === 0) {
+                    termStr = absCoeff.toString();
+                } else if (power === 1) {
+                    termStr = (coeffStr === '') ? xTerm : `${coeffStr} \\times ${xTerm}`;
+                } else {
+                    const xPowerStr = `${xTerm}^${power}`;
+                    termStr = (coeffStr === '') ? xPowerStr : `${coeffStr} \\times ${xPowerStr}`;
+                }
+                
+                if (isFirstTerm) {
+                    return coeff < 0 ? `-${termStr}` : termStr;
+                } else {
+                    return coeff < 0 ? ` - ${termStr}` : ` + ${termStr}`;
+                }
+            };
+            
+            switch (type) {
+                case 'polynomial1':
+                    if (a !== 0) parts.push(formatPolynomialTerm(a, 1, parts.length === 0));
+                    if (b !== 0) parts.push(formatPolynomialTerm(b, 0, parts.length === 0));
+                    break;
+                    
+                case 'polynomial2':
+                    if (a !== 0) parts.push(formatPolynomialTerm(a, 2, parts.length === 0));
+                    if (b !== 0) parts.push(formatPolynomialTerm(b, 1, parts.length === 0));
+                    if (c !== 0) parts.push(formatPolynomialTerm(c, 0, parts.length === 0));
+                    break;
+                    
+                case 'polynomial3':
+                    if (a !== 0) parts.push(formatPolynomialTerm(a, 3, parts.length === 0));
+                    if (b !== 0) parts.push(formatPolynomialTerm(b, 2, parts.length === 0));
+                    if (c !== 0) parts.push(formatPolynomialTerm(c, 1, parts.length === 0));
+                    if (d !== 0) parts.push(formatPolynomialTerm(d, 0, parts.length === 0));
+                    break;
+                    
+                case 'homographic':
+                    // Numérateur
+                    const num_parts = [];
+                    if (a !== 0) num_parts.push(formatPolynomialTerm(a, 1, num_parts.length === 0));
+                    if (b !== 0) num_parts.push(formatPolynomialTerm(b, 0, num_parts.length === 0));
+                    
+                    // Dénominateur
+                    const den_parts = [];
+                    if (c !== 0) den_parts.push(formatPolynomialTerm(c, 1, den_parts.length === 0));
+                    if (d !== 0) den_parts.push(formatPolynomialTerm(d, 0, den_parts.length === 0));
+                    
+                    let num_str = num_parts.join('');
+                    let den_str = den_parts.join('');
+                    
+                    num_str = num_str.replace(/^\s*\+\s*/, '').trim();
+                    den_str = den_str.replace(/^\s*\+\s*/, '').trim();
+
+                    if (num_str === "") num_str = '0';
+                    if (den_str === "") den_str = '0'; 
+
+                    return `\\frac{(${num_str})}{(${den_str})}`;
+            }
+            
+            let result = parts.join('');
+            
+            result = result.replace(/^\s*\+\s*/, '').trim();
+            
+            if (result === "") result = '0'; 
+            
+            return result;
+        }
+
+
+        // --- Fonctions d'Affichage des solutions (inchangées) ---
+        
+        function displayPointAbscissa(point) {
+            const labelDiv = document.getElementById('pointLabel');
+            const x_str = point.x.toFixed(point.x % 1 === 0 ? 0 : 1);
+            
+            labelDiv.innerHTML = `Abscisse du point \\(A\\) sélectionné : \\(x_A = ${x_str}\\)`;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "pointLabel"]);
+        }
+        
+        function displayBCoords(B) {
+            const coordsDisplay = document.getElementById('bCoordsDisplay');
+            coordsDisplay.innerHTML = `Point B : \\(B(${B.x}; ${B.y})\\)`;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "bCoordsDisplay"]);
+            
+            coordsDisplay.style.color = TANGENT_COLOR;
+            coordsDisplay.style.fontWeight = 'bold';
+            coordsDisplay.style.fontSize = '1.1em';
+        }
+
+
+        function displayTangentInfo(point) {
+            const infoDiv = document.getElementById('tangentInfo');
+            
+            const m_real_str = point.m.toFixed(3); 
+            const m_facile_str = point.m_facile.toFixed(point.m_facile % 1 === 0 ? 0 : 2);
+            const y_str = point.y.toFixed(3);
+            
+            const p_exacte = point.y - point.m * point.x;
+            const p_str = p_exacte.toFixed(3);
+
+            let p_term = p_exacte >= 0 ? ` + ${p_str}` : ` - ${Math.abs(p_str).toFixed(3)}`;
+            
+            const eq_tangente_exacte = `y = ${m_real_str}x ${p_term}`;
+            
+            infoDiv.innerHTML = `<b>Équation exacte (Réponse Finale) :</b> \\(${eq_tangente_exacte}\\).<br><br>Justification de la lecture graphique : La tangente passe par le point \\(A(${point.x}; ${y_str})\\) et le point de grille \\(B(${point.B.x}; ${point.B.y})\\), ce qui permet de lire une pente (coefficient directeur) approchée de \\(m_{lu} = ${m_facile_str}\\).<br>Par définition, le nombre dérivé est \\(f'(${point.x}) \\approx ${m_facile_str}\\).`;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "tangentInfo"]);
+        }
+        
+        // Fonction pour la solution détaillée (inchangée)
+        function displayDetailedSolution(point) {
+            const detailedDiv = document.getElementById('detailedSolution');
+            const xA = point.x;
+            const yA = point.y;
+            const m_real = point.m;
+            const m_facile = point.m_facile;
+            const B = point.B;
+            
+            // Variables pour l'affichage des coordonnées
+            const xA_str_display = xA.toFixed(xA % 1 === 0 ? 0 : 1); 
+            const yA_str_display = yA.toFixed(3);
+            
+            // Variables pour la substitution dans la pente (étape 2)
+            const xA_str_diff = formatCoordForDifference(xA, true); 
+            const yA_str_diff = formatCoordForDifference(yA, false);
+            
+            const m_facile_str = m_facile.toFixed(m_facile % 1 === 0 ? 0 : 2);
+            const m_real_str = m_real.toFixed(3);
+            
+            // Calcul du p et formatage (utiliser 3 décimales pour les calculs intermédiaires)
+            const m_real_for_p = parseFloat(m_real.toFixed(3)); 
+            const yA_for_p = parseFloat(yA.toFixed(3));
+            const p_exacte = yA_for_p - m_real_for_p * xA;
+            const p_str = p_exacte.toFixed(3);
+            const p_term = p_exacte >= 0 ? ` + ${Math.abs(p_str).toFixed(3)}` : ` - ${Math.abs(p_str).toFixed(3)}`;
+            
+            // Variables pour la substitution dans l'équation yA = m.xA + p
+            const yA_for_p_eq_subst = formatCoordForDifference(yA_for_p, false); 
+            const xA_for_p_diff = formatCoordForDifference(xA, true); 
+            
+            // Génération de la chaîne de calcul f(xA)
+            const calculationStr = getFunctionValueCalculation(xA, currentParams);
+
+            // 1. Calcul du point A
+            const etape1 = `
+                <div class="step">
+                    <div class="step-title">Étape 1 : Détermination des coordonnées du point de tangence \\(A\\)</div>
+                    <div class="step-explanation">Le point de tangence \\(A\\) est le point de la courbe \\(\\mathscr{C}_f\\) d'abscisse donnée \\(x_A = ${xA_str_display}\\). Nous calculons l'ordonnée \\(f(x_A)\\) en utilisant l'expression de la fonction :</div>
+                    $$f(${xA_str_display}) = ${calculationStr} \\approx ${yA_str_display}$$
+                    L'ordonnée est donc \\(y_A = f(${xA_str_display}) \\approx ${yA_str_display}\\).
+                    <br>Le point de tangence est donc \\(A(${xA_str_display}; ${yA_str_display})\\).
+                </div>
+            `;
+
+            // 2. Détermination du Nombre Dérivé (pente) par lecture graphique
+            const etape2 = `
+                <div class="step">
+                    <div class="step-title">Étape 2 : Détermination du coefficient directeur \\(m\\) de la tangente \\(T\\)</div>
+                    <div class="step-explanation">Le coefficient directeur \\(m\\) de la tangente est lu graphiquement à partir de deux points de la droite, \\(A\\) et un point de grille \\(B\\) que nous avons identifié.</div>
+                    Lecture graphique (méthode d'estimation) : 
+                    <br>
+                    1. <b>Point de tangence :</b> \\(A(${xA_str_display}; ${yA_str_display})\\).
+                    2. <b>Point de grille d'aide :</b> \\(B(${B.x}; ${B.y})\\) sur la tangente.
+                    <br>
+                    Le coefficient directeur \\(m\\) (pente) est donné par la formule du taux d'accroissement entre ces deux points : 
+                    $$m = \\frac{y_B - y_A}{x_B - x_A}$$
+                    En remplaçant par les valeurs (en utilisant les coordonnées entières de $B$ et les coordonnées de $A$ lues sur la grille) :
+                    $$m \\approx \\frac{${B.y} - ${yA_str_diff}}{${B.x} - ${xA_str_diff}} \\approx ${m_facile_str}$$
+                    La valeur exacte (calculée) de la pente est donc \\(m = f'(${xA_str_display}) \\approx ${m_real_str}\\).
+                </div>
+            `;
+            
+            // 3. Équation de la tangente
+            const etape3 = `
+                <div class="step">
+                    <div class="step-title">Étape 3 : Détermination de l'ordonnée à l'origine \\(p\\)</div>
+                    <div class="step-explanation">L'équation réduite de la tangente est de la forme \\(y = m x + p\\). Nous connaissons la pente \\(m \\approx ${m_real_str}\\) et le point \\(A(${xA_str_display}; ${yA_str_display})\\) par lequel passe la tangente. Pour trouver \\(p\\), nous résolvons l'équation en remplaçant \\(x\\) et \\(y\\) par les coordonnées de \\(A\\) :</div>
+                    $$y_A = m \\cdot x_A + p$$
+                    Remplaçons les valeurs du point \\(A\\) et de la pente \\(m\\) :
+                    $$${yA_for_p_eq_subst} = ${m_real_for_p} \\cdot ${xA_for_p_diff} + p$$
+                    Calcul du terme \\(m \\cdot x_A\\) :
+                    $$${m_real_for_p} \\cdot ${xA_for_p_diff} \\approx ${(m_real_for_p * xA).toFixed(3)}$$
+                    L'équation devient :
+                    $$${yA_for_p} \\approx ${(m_real_for_p * xA).toFixed(3)} + p$$
+                    Résolvons pour \\(p\\) :
+                    $$p = y_A - (m \\cdot x_A) \\approx ${yA_for_p} - ${(m_real_for_p * xA).toFixed(3)} \\approx ${p_str}$$
+                    L'ordonnée à l'origine est \\(p \\approx ${p_str}\\).
+                    <div class="step-explanation"><b>Équation finale :</b> L'équation réduite de la tangente est :</div>
+                    $$T : y = ${m_real_str}x ${p_term}$$
+                </div>
+            `;
+
+            detailedDiv.innerHTML = "<h3>Solution Détaillée et Pédagogique</h3>" + etape1 + etape2 + etape3;
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "detailedSolution"]);
+        }
+
+
+        // --- Fonctions de Tracé (inchangées) ---
+
+        function toCanvasCoords(x, y) {
+            const px = CENTER_X + x * SCALE;
+            const py = CENTER_Y - y * SCALE;
+            return { px, py };
+        }
+        
+        function drawGrid() {
+            ctx.beginPath();
+            ctx.strokeStyle = FINE_GRID_COLOR;
+            ctx.lineWidth = 0.5;
+            for (let x = -RANGE; x <= RANGE; x += GRID_STEP_FINE) {
+                const px = CENTER_X + x * SCALE;
+                ctx.moveTo(px, 0); ctx.lineTo(px, HEIGHT);
+            }
+            for (let y = -RANGE; y <= RANGE; y += GRID_STEP_FINE) {
+                const py = CENTER_Y - y * SCALE;
+                ctx.moveTo(0, py); ctx.lineTo(WIDTH, py);
+            }
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.strokeStyle = MAJOR_GRID_COLOR;
+            ctx.lineWidth = 1;
+            for (let x = -RANGE; x <= RANGE; x += GRID_STEP_MAJOR) {
+                const px = CENTER_X + x * SCALE;
+                ctx.moveTo(px, 0); ctx.lineTo(px, HEIGHT);
+            }
+            for (let y = -RANGE; y <= RANGE; y += GRID_STEP_MAJOR) {
+                const py = CENTER_Y - y * SCALE;
+                ctx.moveTo(0, py); ctx.lineTo(WIDTH, py);
+            }
+            ctx.stroke();
+        }
+
+        function drawAxesAndColoredElements() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+            drawGrid();
+
+            ctx.strokeStyle = AXIS_COLOR;
+            ctx.lineWidth = 1.5;
+
+            ctx.beginPath();
+            ctx.moveTo(0, CENTER_Y); ctx.lineTo(WIDTH, CENTER_Y);
+            ctx.moveTo(CENTER_X, 0); ctx.lineTo(CENTER_X, HEIGHT);
+            ctx.stroke();
+
+            ctx.strokeStyle = ORIGIN_COLOR;
+            ctx.fillStyle = ORIGIN_COLOR;
+            ctx.lineWidth = 2.5;
+
+            const start = toCanvasCoords(0, 0);
+            ctx.beginPath(); ctx.arc(start.px, start.py, 3, 0, 2 * Math.PI); ctx.fill();
+
+            let end_i = toCanvasCoords(1, 0); ctx.beginPath(); ctx.moveTo(start.px, start.py); ctx.lineTo(end_i.px, end_i.py);
+            ctx.lineTo(end_i.px - 6, end_i.py - 4); ctx.moveTo(end_i.px, end_i.py); ctx.lineTo(end_i.px - 6, end_i.py + 4); ctx.stroke();
+
+            let end_j = toCanvasCoords(0, 1); ctx.beginPath(); ctx.moveTo(start.px, start.py); ctx.lineTo(end_j.px, end_j.py);
+            ctx.lineTo(end_j.px - 4, end_j.py + 6); ctx.moveTo(end_j.px, end_j.py); ctx.lineTo(end_j.px + 4, end_j.py + 6); ctx.stroke();
+        }
+
+        function drawCurve() {
+            ctx.beginPath();
+            ctx.strokeStyle = CURVE_COLOR;
+            ctx.lineWidth = CURVE_THICKNESS;
+
+            let firstPoint = true;
+            const step = 0.1;
+
+            for (let x_math = -RANGE; x_math <= RANGE; x_math += step) {
+                const y_math = currentFunction(x_math);
+                
+                if (isNaN(y_math) || y_math < -HEIGHT / SCALE * 1.5 || y_math > HEIGHT / SCALE * 1.5) { 
+                    firstPoint = true; 
+                    continue; 
+                }
+
+                const { px, py } = toCanvasCoords(x_math, y_math);
+
+                if (firstPoint) {
+                    ctx.moveTo(px, py);
+                    firstPoint = false;
+                } else {
+                    ctx.lineTo(px, py);
+                }
+            }
+            ctx.stroke();
+            
+            // L'asymptote verticale est intentionnellement omise pour les fonctions homographiques.
+        }
+        
+        function drawTangentAndPoints() {
+            if (!selectedPoint || isNaN(selectedPoint.x)) return;
+
+            const { x, y, m, B } = selectedPoint; 
+            
+            const A_coords = toCanvasCoords(x, y);
+            
+            // 1. Tracer la tangente (ligne verte)
+            // Utilise la VRAIE pente 'm' pour le tracé.
+            ctx.strokeStyle = TANGENT_COLOR;
+            ctx.lineWidth = 1.5;
+            
+            const delta = RANGE * 1.5; 
+            const startX = x - delta;
+            // Formule de la tangente : y = m(x - x_A) + y_A
+            const startY = m * (startX - x) + y;
+            const endX = x + delta;
+            const endY = m * (endX - x) + y;
+
+            const start_canvas = toCanvasCoords(startX, startY);
+            const end_canvas = toCanvasCoords(endX, endY);
+
+            ctx.beginPath();
+            ctx.moveTo(start_canvas.px, start_canvas.py);
+            ctx.lineTo(end_canvas.px, end_canvas.py);
+            ctx.stroke();
+
+
+            // 2. Tracer le point A
+            ctx.fillStyle = POINT_COLOR;
+            ctx.beginPath();
+            ctx.arc(A_coords.px, A_coords.py, 4, 0, 2 * Math.PI); 
+            ctx.fill();
+            
+            ctx.fillStyle = POINT_COLOR;
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('A', A_coords.px + 5, A_coords.py - 5);
+
+
+            // 3. Tracer le point B (CONDITIONNEL via isBVisible)
+            if (isBVisible) {
+                const B_coords = toCanvasCoords(B.x, B.y);
+                ctx.fillStyle = TANGENT_COLOR;
+                ctx.beginPath();
+                ctx.arc(B_coords.px, B_coords.py, 4, 0, 2 * Math.PI); 
+                ctx.fill();
+                
+                ctx.fillStyle = TANGENT_COLOR;
+                ctx.font = 'bold 16px Arial';
+                ctx.fillText('B', B_coords.px + 5, B_coords.py - 5);
+                
+                // Ligne pointillée entre A et B
+                ctx.strokeStyle = TANGENT_COLOR;
+                ctx.lineWidth = 1;
+                ctx.setLineDash([3, 3]);
+                ctx.beginPath();
+                ctx.moveTo(A_coords.px, A_coords.py);
+                ctx.lineTo(B_coords.px, B_coords.py);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function positionOriginLabel() {
+            const label = document.getElementById('originLabel');
+            const { px, py } = toCanvasCoords(0, 0);
+            
+            const offset_x = -15; 
+            const offset_y = 15;  
+            
+            label.style.left = (px + offset_x) + 'px'; 
+            label.style.top = (py + offset_y) + 'px'; 
+            label.style.color = ORIGIN_COLOR;
+            label.innerHTML = '$O$'; 
+
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, "originLabel"]);
+        }
+
+        /** Fonction principale de dessin. */
+        function drawGraph() {
+            drawAxesAndColoredElements();
+            drawCurve();
+            drawTangentAndPoints(); 
+            positionOriginLabel();
+        }
+        
+        /** Fonction combinée pour le bouton "Nouvelle Courbe" */
+        function regenerateGraph() {
+            resetState(); 
+            
+            let attempts = 0;
+            let foundValidPoint = false;
+            
+            // Boucle de relance si la cohérence n'est pas trouvée (max 50 tentatives)
+            while (!foundValidPoint && attempts < 50) { 
+                try {
+                    selectRandomFunction(); 
+                    selectTangentPoint(); 
+                    
+                    if (selectedPoint && selectedPoint.B && !isNaN(selectedPoint.B.x)) {
+                        foundValidPoint = true;
+                    }
+                } catch (e) {
+                     console.log(e.message);
+                }
+                attempts++;
+            }
+            
+            initialSetupDone = true;
+            selectRandomEnonce(); 
+
+            if (foundValidPoint) {
+                drawGraph(); 
+                displayPointAbscissa(selectedPoint); 
+            } else {
+                 alert("Échec de la génération d'un point A et B valides après 50 tentatives. Veuillez réessayer.");
+                 drawGraph();
+            }
+        }
+
+        // --- Exécution initiale au chargement de la page ---
+        window.onload = function() {
+            regenerateGraph(); 
+        }
+
+    </script>
+
+</body>
+</html>
