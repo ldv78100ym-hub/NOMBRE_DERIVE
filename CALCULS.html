@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercice : Nombre Dérivé et Tangente</title>
+    
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* CSS intégré pour la mise en forme */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px; /* Padding de base */
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px; /* Padding interne de base */
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        /* Conteneur pour le titre et le bouton */
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* Conteneur du bouton + tooltip pour le positionnement relatif */
+        .home-button-wrapper {
+            position: relative; /* Point de référence pour le tooltip */
+            display: inline-block;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Style spécifique pour le bouton Autres Chapitres */
+        .btn-home {
+            background-color: #8e44ad; /* Violet */
+            white-space: nowrap; /* Empêche le texte de se couper */
+            text-decoration: none; /* Enlève le soulignement du lien */
+            font-weight: bold;
+            display: block; /* Nécessaire pour le wrapper */
+        }
+        .btn-home:hover {
+            background-color: #6c3483;
+        }
+
+        /* Style du Popover/Tooltip Aperçu */
+        .tooltip-preview {
+            visibility: hidden;
+            opacity: 0;
+            background-color: #2c3e50; /* Couleur sombre */
+            color: white;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10;
+            /* Changements pour positionner en dessous */
+            top: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px; /* Espace entre le bouton et le tooltip */
+            /* Fin des changements */
+            width: 250px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+        /* Triangle du Popover */
+        .tooltip-preview::after {
+            content: "";
+            position: absolute;
+            /* Changements pour que la flèche pointe vers le haut */
+            bottom: 100%; 
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            /* La couleur du haut est transparente, la couleur du bas (qui est vue) est celle du tooltip */
+            border-color: transparent transparent #2c3e50 transparent;
+            /* Fin des changements */
+        }
+
+        /* Affichage du Popover au survol du conteneur */
+        .home-button-wrapper:hover .tooltip-preview {
+            visibility: visible;
+            opacity: 1;
+        }
+
+
+        .btn-secondary {
+            background-color: #95a5a6;
+        }
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        .btn-dev {
+            /* Style spécifique pour les boutons de développement */
+            background-color: #27ae60; 
+            margin-top: 15px; 
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .btn-dev:hover {
+             background-color: #219653; 
+        }
+        .btn-copyright {
+            background-color: #34495e;
+            font-size: 14px;
+            padding: 8px 16px;
+            margin-top: 20px;
+        }
+        .problem-box {
+            border-left: 5px solid #3498db;
+            background-color: #eaf2f8;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .solution-box {
+            border-left: 5px solid #27ae60;
+            background-color: #e9f7ef;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            display: none; /* Masqué par défaut */
+        }
+        .step {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .step:last-child {
+            border-bottom: none;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #d35400;
+        }
+        
+        /* Styles pour la modale (fenêtre surgissante) */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.5); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; 
+            padding: 25px;
+            border: 1px solid #888;
+            width: 80%; 
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* --- RESPONSIVENESS (Mobile) --- */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px; /* Réduire le padding externe */
+            }
+            .container {
+                padding: 15px; /* Réduire le padding interne */
+            }
+            /* Les boutons d'action principaux prennent toute la largeur pour être plus faciles à presser */
+            .btn {
+                width: 100%;
+                display: block;
+                margin: 5px 0; /* Ajuster les marges pour un empilement propre */
+            }
+            /* Réajuster le bouton home pour qu'il s'aligne bien au titre */
+            .header-controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .home-button-wrapper {
+                width: 100%; /* Le conteneur du bouton prend toute la largeur */
+                margin: 10px 0 20px 0; /* Marge en bas du bouton */
+            }
+            .btn-home {
+                width: 100%; /* Le bouton prend toute la largeur du conteneur */
+            }
+            .tooltip-preview {
+                 visibility: hidden !important; /* Masquer le tooltip sur mobile (pas de survol) */
+                 opacity: 0 !important;
+            }
+            /* Assurer que la modale s'adapte bien */
+            .modal-content {
+                width: 90%;
+                margin: 5% auto;
+            }
+            /* Assurer que les formules MathJax peuvent déborder horizontalement dans le conteneur s'il le faut */
+            .solution-box, .development-step {
+                 overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-controls">
+        <h1>Dérivation : Nombre dérivé et Tangente</h1>
+        
+        <div class="home-button-wrapper">
+            <a href="https://ldv78100ym-hub.github.io/HOME/" class="btn btn-home" target="_blank">Autres Chapitres 📚</a>
+            <div class="tooltip-preview">
+                <strong>Aperçu :</strong> La page contient la table des matières interactive et les liens vers d'autres chapitres de mathématiques <br>(Tableaux de signes, Factorisations, Second degré, Droites, Nombre dérivé, Produit scalaire, Probabilités).
+            </div>
+        </div>
+
+    </div>
+
+    <p>Générateur d'exercices aléatoires sur la définition du nombre dérivé (limite du taux d'accroissement) et l'équation de la tangente.</p>
+
+    <div id="exercise-area">
+        <div class="problem-box">
+            <h2>Énoncé</h2>
+            <div id="problem-text">Chargement de l'exercice...</div>
+        </div>
+
+        <button class="btn" onclick="generateExercise()">Générer un nouvel exercice</button>
+        <button class="btn btn-secondary" onclick="showSolution()">Voir la correction détaillée</button>
+        
+        <div id="solution-area" class="solution-box">
+            <h2>Correction détaillée</h2>
+            <div id="solution-text"></div>
+        </div>
+    </div>
+    
+    <hr style="margin-top: 40px; border: 0; border-top: 1px solid #eee;">
+    <button class="btn btn-copyright" onclick="openModal()">© Infos Droits d'Auteur</button>
+</div>
+
+<div id="copyrightModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Droits d'Auteur et Source</h3>
+        <p><strong>Auteur du problème :</strong> Yann Merdy</p>
+        <p><strong>Droits d'Auteur et Utilisation :</strong></p>
+        <p>Ce contenu, y compris l'énoncé, les solutions et le code interactif, est protégé par les droits d'auteur. <strong>Toute utilisation à des fins commerciales, y compris la revente, la distribution ou l'intégration dans des produits commerciaux, est strictement interdite sans autorisation écrite explicite de l'auteur.</strong></p>
+        <p>L'utilisation est limitée à des fins éducatives et personnelles non commerciales.</p>
+    </div>
+</div>
+
+<script>
+    // --- VARIABLES GLOBALES ---
+    let currentPoly = {}; // Stocke les données de l'exercice en cours
+
+    // --- FONCTIONS UTILITAIRES ---
+
+    // Entier aléatoire entre min et max
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Formatage d'un terme polynomial (ex: 3x^2, -x, 5)
+    function formatTerm(coef, deg, isFirst) {
+        if (coef === 0) return "";
+        
+        let sign = "";
+        if (coef > 0) {
+            sign = isFirst ? "" : "+";
+        } else {
+            sign = "-";
+        }
+
+        let absCoef = Math.abs(coef);
+        let coefStr = (absCoef === 1 && deg > 0) ? "" : absCoef.toString();
+        
+        let xPart = "";
+        if (deg === 1) xPart = "x";
+        else if (deg > 1) xPart = "x^" + deg;
+
+        return sign + coefStr + xPart;
+    }
+
+    // Génère le LaTeX du polynôme complet
+    function getPolyLatex(coeffs) {
+        let latex = "";
+        let isFirst = true;
+        // coeffs[0]=constante, coeffs[1]=x, etc.
+        for (let i = coeffs.length - 1; i >= 0; i--) {
+            let term = formatTerm(coeffs[i], i, isFirst);
+            if (term !== "") {
+                latex += term;
+                isFirst = false;
+            }
+        }
+        if (latex === "") return "0";
+        return latex;
+    }
+
+    // Évalue le polynôme pour une valeur x
+    function evaluatePoly(coeffs, x) {
+        let res = 0;
+        for (let i = 0; i < coeffs.length; i++) {
+            res += coeffs[i] * Math.pow(x, i);
+        }
+        return res;
+    }
+    
+    // --- OUTILS DE DÉVELOPPEMENT AVEC COULEURS ---
+    
+    function showDevelopment(id) {
+        let devDiv = document.getElementById(id);
+        if (devDiv.style.display === "none") {
+            devDiv.style.display = "block";
+            if (window.MathJax) {
+                MathJax.typesetPromise([devDiv]);
+            }
+        } else {
+            devDiv.style.display = "none";
+        }
+    }
+
+    // Génère l'explication du développement de (a+h)^2
+    function getDevelopment2(a, ORANGE_COLOR, BLUE_COLOR) { 
+        let a_sq = a*a;
+        let two_a = 2*a;
+        
+        let A_color_latex = `\\color{${ORANGE_COLOR}}{${a}}\\color{black}`;
+        let B_color_latex = `\\color{${BLUE_COLOR}}{h}\\color{black}`;
+
+        return `
+            <div class="development-step">
+                <p>On utilise l'identité remarquable <span style="color:${ORANGE_COLOR}; font-weight:bold;">\\( (A+B)^2 = A^2 + 2AB + B^2 \\)</span> avec \\( A = ${a} \\) et \\( B = h \\) :</p>
+                \\[ (${A_color_latex}+${B_color_latex})^2 = (${A_color_latex})^2 + 2(${A_color_latex})(${B_color_latex}) + (${B_color_latex})^2 \\]
+                \\[ (${a}+h)^2 = ${a_sq} + ${two_a}\\color{${BLUE_COLOR}}{h}\\color{black} + \\color{${BLUE_COLOR}}{h^2}\\color{black} \\]
+            </div>
+        `;
+    }
+    
+    // Génère l'explication du développement de (a+h)^3 basée sur (a+h)^2, avec mise en couleur pour la distributivité
+    function getDevelopment3(a, ORANGE_COLOR, BLUE_COLOR, GREEN_COLOR, PURPLE_COLOR) { 
+        let a_sq = a*a;
+        let a_cubed = a*a*a;
+        let two_a = 2*a;
+        let two_a_sq = 2*a*a;
+        let three_a_sq = 3*a*a;
+        let three_a = 3*a;
+        
+        let A_color_latex = `\\color{${ORANGE_COLOR}}{${a}}\\color{black}`;
+        let B_color_latex = `\\color{${BLUE_COLOR}}{h}\\color{black}`;
+        let Dev2_color_latex = `\\color{${GREEN_COLOR}}{${a_sq} + ${two_a}h + h^2}\\color{black}`; 
+        
+        let dev2_uncolored = `${a_sq} + ${two_a}h + h^2`; // Version non colorée pour l'intérieur de la parenthèse distribuée
+        
+        // --- Étape 2: Double Distribution ---
+        
+        // Distribution de 'a' (Orange)
+        let dist_a_term1 = a_cubed; 
+        let dist_a_term2 = `${two_a_sq}\\color{${BLUE_COLOR}}{h}\\color{black}`; 
+        let dist_a_term3 = `${a}\\color{${BLUE_COLOR}}{h^2}\\color{black}`; 
+        let dist_a_result = `(${dist_a_term1} + ${dist_a_term2} + ${dist_a_term3})`;
+
+        // Distribution de 'h' (Bleu)
+        let dist_h_term1 = `${a_sq}\\color{${BLUE_COLOR}}{h}\\color{black}`; 
+        let dist_h_term2 = `${two_a}\\color{${BLUE_COLOR}}{h^2}\\color{black}`; 
+        let dist_h_term3 = `\\color{${BLUE_COLOR}}{h^3}\\color{black}`; 
+        let dist_h_result = `(${dist_h_term1} + ${dist_h_term2} + ${dist_h_term3})`;
+        
+        // --- Étape 3: Regroupement (Violet) ---
+        let h_terms_group = `(\\color{${BLUE_COLOR}}{${two_a_sq}h} + \\color{${BLUE_COLOR}}{${a_sq}h})`;
+        let h2_terms_group = `(\\color{${BLUE_COLOR}}{${a}h^2} + \\color{${BLUE_COLOR}}{${two_a}h^2})`;
+
+        return `
+            <div class="development-step">
+                <p>On développe en utilisant la forme factorisée \\( (a+h)^3 = (a+h)(a+h)^2 \\) et le développement de \\( (a+h)^2 \\) :</p>
+                \\[ (${A_color_latex}+${B_color_latex})^3 = (${A_color_latex}+${B_color_latex})(${Dev2_color_latex}) \\]
+                <p>On applique la <span style="color:${GREEN_COLOR}; font-weight:bold;">double distributivité</span> en séparant les termes de \\( (a+h) \\) :</p>
+                \\[ = \\color{${ORANGE_COLOR}}{${a}}\\color{black}(${dev2_uncolored}) + \\color{${BLUE_COLOR}}{h}\\color{black}(${dev2_uncolored}) \\]
+                <p>Résultats de la distribution :</p>
+                \\[ = ${dist_a_result} + ${dist_h_result} \\]
+                <p>On regroupe les termes similaires (en \\( h \\) et \\( h^2 \\)) :</p>
+                \\[ = ${a_cubed} + \\color{${PURPLE_COLOR}}{${h_terms_group}}\\color{black} + \\color{${PURPLE_COLOR}}{${h2_terms_group}}\\color{black} + \\color{${BLUE_COLOR}}{h^3}\\color{black} \\]
+                <p>Réduction :</p>
+                \\[ = ${a_cubed} + ${three_a_sq}\\color{${BLUE_COLOR}}{h}\\color{black} + ${three_a}\\color{${BLUE_COLOR}}{h^2}\\color{black} + \\color{${BLUE_COLOR}}{h^3}\\color{black} \\]
+            </div>
+        `;
+    }
+    // ------------------------------------------
+
+    // --- CŒUR DE L'EXERCICE ---
+
+    function generateExercise() {
+        // Masquer la solution précédente
+        document.getElementById('solution-area').style.display = 'none';
+        document.getElementById('solution-text').innerHTML = "";
+
+        // 1. Choix du degré (0 à 3)
+        const degrees = [0, 1, 2, 2, 3, 3]; 
+        const deg = degrees[getRandomInt(0, degrees.length - 1)];
+
+        // 2. Génération des coefficients
+        let coeffs = [];
+        for (let i = 0; i <= deg; i++) {
+            let c;
+            if (i === deg) {
+                do { c = getRandomInt(-4, 4); } while (c === 0);
+            } else {
+                c = getRandomInt(-5, 5);
+            }
+            coeffs.push(c);
+        }
+
+        // 3. Choix de a
+        let a = getRandomInt(-3, 4);
+
+        currentPoly = { deg: deg, coeffs: coeffs, a: a };
+
+        // 4. Affichage de l'énoncé
+        let polyTex = getPolyLatex(coeffs);
+        let html = `
+            <p>Soit \\( f \\) la fonction définie sur \\( \\mathbb{R} \\) par :
+            \\[ f(x) = ${polyTex} \\]
+            </p>
+            <ol>
+                <li>Calculer le nombre dérivé de \\( f \\) en \\( a = ${a} \\), noté \\( f'(${a}) \\), en utilisant la définition par la limite du taux d'accroissement :
+                \\[ f'(${a}) = \\lim_{h \\to 0} \\frac{f(${a}+h) - f(${a})}{h} \\]
+                </li>
+                <li>Donner l'interprétation graphique de ce résultat.</li>
+                <li>En déduire l'équation réduite de la tangente \\( \\mathscr{T} \\) à la courbe \\( \\mathscr{C}_f \\) au point d'abscisse \\( ${a} \\).</li>
+            </ol>
+        `;
+
+        document.getElementById('problem-text').innerHTML = html;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([document.getElementById('problem-text')]);
+        }
+    }
+
+    function showSolution() {
+        if (!currentPoly.coeffs) return;
+
+        let coeffs = currentPoly.coeffs;
+        let a = currentPoly.a;
+        let deg = currentPoly.deg;
+        
+        // 1. Définition des couleurs
+        const ORANGE_COLOR = "#d35400";
+        const BLUE_COLOR = "#3498db";
+        const GREEN_COLOR = "#27ae60"; 
+        const PURPLE_COLOR = "#8e44ad";
+
+        // Variables colorées
+        let colorA = `\\color{${ORANGE_COLOR}}{${a}}\\color{black}`; 
+        let colored_a_h = `\\color{${BLUE_COLOR}}{${a}+h}\\color{black}`; 
+        
+        let taux_expression_generic = `\\frac{f(${colored_a_h}) - f(${colorA})}{h}`; 
+
+
+        // Calcul de f(a)
+        let fa = evaluatePoly(coeffs, a);
+
+        // --- Construction de l'affichage explicite avec a en couleur ---
+        let f_a_subst = "";
+        let isFirstFa = true;
+
+        for (let i = deg; i >= 0; i--) {
+            let c = coeffs[i];
+            if (c === 0) continue;
+
+            let sign = "";
+            if (c > 0) {
+                sign = isFirstFa ? "" : "+";
+            } else {
+                sign = "-";
+            }
+
+            let absC = Math.abs(c);
+            let cStr = (absC === 1 && i > 0) ? "" : absC.toString();
+
+            let term = "";
+            if (i === 0) {
+                term = `${sign} ${cStr}`;
+            } else {
+                let powerStr = (i === 1) ? "" : `^${i}`;
+                let space = (cStr === "") ? "" : " ";
+                
+                term = `${sign}${space}${cStr}(${colorA})${powerStr}`; 
+            }
+
+            f_a_subst += term;
+            isFirstFa = false;
+        }
+        if (f_a_subst === "") f_a_subst = "0";
+        // -------------------------------------------------------------------------
+
+
+        // 2. Préparation du développement de f(a+h)
+        let h_coeffs = [0, 0, 0, 0]; 
+
+        for (let i = 0; i <= deg; i++) {
+            let C = coeffs[i]; 
+            if (C === 0) continue;
+
+            if (i === 0) { 
+                h_coeffs[0] += C;
+            } else if (i === 1) { 
+                h_coeffs[0] += C * a;
+                h_coeffs[1] += C;
+            } else if (i === 2) { 
+                h_coeffs[0] += C * a * a;
+                h_coeffs[1] += C * 2 * a;
+                h_coeffs[2] += C;
+            } else if (i === 3) { 
+                h_coeffs[0] += C * Math.pow(a, 3);
+                h_coeffs[1] += C * 3 * Math.pow(a, 2);
+                h_coeffs[2] += C * 3 * a;
+                h_coeffs[3] += C;
+            }
+        }
+        
+        // a) Affichage brute de la substitution f(a+h)
+        let substitution_tex = "";
+        let isFirst = true;
+        for (let i = deg; i >= 0; i--) {
+            let c = coeffs[i];
+            if (c === 0) continue;
+            
+            let sign = (c > 0 && !isFirst) ? "+" : "";
+            if (c < 0) sign = "-";
+            let absC = Math.abs(c);
+            let cStr = (absC === 1 && i > 0) ? "" : absC; 
+
+            let term = "";
+
+            if (i === 0) {
+                 // Gestion du terme constant (demandé précédemment)
+                 let constant_value = Math.abs(c);
+                 let constant_prefix = "";
+                 
+                 if (c > 0 && !isFirst) {
+                     constant_prefix = " + ";
+                 } else if (c < 0) {
+                     constant_prefix = (isFirst) ? "-" : " - ";
+                 }
+                 
+                 term = `${constant_prefix}${constant_value}`;
+                 
+            } else {
+                 // Gestion des termes en x
+                 let power_str = "";
+                 if (i > 1) {
+                     power_str = `^${i}`;
+                 }
+                 // **MODIFICATION ici pour ne pas afficher l'exposant 1**
+                 
+                 let term_prefix = (isFirst) ? sign : `${sign} `; // Ajoute l'espace si non premier terme
+
+                 term = `${term_prefix}${cStr}(${colored_a_h})${power_str}`;
+            }
+            
+            // Cas spéciaux pour le premier terme
+            if (isFirst && c < 0 && i !== 0) term = `-${cStr}(${colored_a_h})${i > 1 ? `^${i}` : ''}`; 
+            if (isFirst && i===1 && c===-1) term = `-(${colored_a_h})`; 
+            if (isFirst && i===1 && c===1) term = `(${colored_a_h})`; // Premier terme, coeff 1, deg 1
+
+            substitution_tex += term;
+            isFirst = false;
+        }
+        if (substitution_tex === "") substitution_tex = "0";
+
+        // --- Ajout des boutons de développement ---
+        let development_buttons_html = "";
+        
+        if (coeffs.length > 2 && coeffs[2] !== 0) {
+            let a_val = a;
+            let dev2_html = getDevelopment2(a_val, ORANGE_COLOR, BLUE_COLOR);
+            development_buttons_html += `
+                <button class="btn btn-dev" onclick="showDevelopment('dev-2')">Développement (a+h)²</button>
+                <div id="dev-2" style="display:none; padding:10px; margin:10px 0; background:#f0f7ff; border:1px solid #cceeff; border-radius:4px;">
+                    ${dev2_html}
+                </div>
+            `;
+        }
+
+        if (coeffs.length > 3 && coeffs[3] !== 0) {
+            let a_val = a;
+            let dev3_html = getDevelopment3(a_val, ORANGE_COLOR, BLUE_COLOR, GREEN_COLOR, PURPLE_COLOR);
+            development_buttons_html += `
+                <button class="btn btn-dev" onclick="showDevelopment('dev-3')">Développement (a+h)³</button>
+                <div id="dev-3" style="display:none; padding:10px; margin:10px 0; background:#f0f7ff; border:1px solid #cceeff; border-radius:4px;">
+                    ${dev3_html}
+                </div>
+            `;
+        }
+        // ---------------------------------------------------
+
+        // b) Affichage de f(a+h) développé (termes en h)
+        let developed_poly_h = ""; 
+        isFirst = true;
+        for(let p=3; p>=0; p--) {
+            if(h_coeffs[p] !== 0) {
+                let val = h_coeffs[p];
+                let sign = (val >= 0 && !isFirst) ? "+" : "-";
+                if(isFirst && val < 0) sign = "-";
+                let absVal = Math.abs(val);
+                let valStr = (absVal === 1 && p > 0) ? "" : absVal;
+
+                let hPart = "";
+                if(p===1) hPart = "h";
+                else if(p>1) hPart = "h^" + p;
+
+                developed_poly_h += `${sign} ${valStr}${hPart} `;
+                isFirst = false;
+            }
+        }
+        if(developed_poly_h === "") developed_poly_h = "0";
+
+        // c) Numérateur f(a+h) - f(a)
+        let numerator_h = ""; 
+        isFirst = true;
+        for(let p=3; p>=1; p--) {
+            if(h_coeffs[p] !== 0) {
+                let val = h_coeffs[p];
+                let sign = (val >= 0 && !isFirst) ? "+" : "-";
+                if(isFirst && val < 0) sign = "-";
+                let absVal = Math.abs(val);
+                let valStr = (absVal === 1) ? "" : absVal;
+
+                let hPart = (p===1) ? "h" : "h^" + p;
+                numerator_h += `${sign} ${valStr}${hPart} `;
+                isFirst = false;
+            }
+        }
+        if(numerator_h === "") numerator_h = "0";
+
+        // d) Factorisation par h
+        let factorised_inside = "";
+        isFirst = true;
+        for(let p=3; p>=1; p--) {
+            if(h_coeffs[p] !== 0) {
+                let val = h_coeffs[p];
+                let newDeg = p - 1;
+                
+                let sign = (val >= 0 && !isFirst) ? "+" : "-";
+                if(isFirst && val < 0) sign = "-";
+                
+                let absVal = Math.abs(val);
+                let valStr = (absVal === 1 && newDeg > 0) ? "" : absVal;
+
+                let hPart = "";
+                if(newDeg === 1) hPart = "h";
+                else if(newDeg > 1) hPart = "h^" + newDeg;
+
+                factorised_inside += `${sign} ${valStr}${hPart} `;
+                isFirst = false;
+            }
+        }
+        if(factorised_inside === "") factorised_inside = "0";
+
+
+        // 3. Calcul de la limite (m)
+        let m = h_coeffs[1]; 
+
+        // 4. Calcul de l'ordonnée à l'origine p
+        let p_val = fa - (m * a);
+        
+        let mStr = (m === 1) ? "x" : (m === -1 ? "-x" : (m === 0 ? "" : `${m}x`));
+        let pSign = (p_val >= 0) ? "+" : "";
+        
+        let eqTangente = "";
+        if (m === 0) {
+            eqTangente = `y = ${p_val}`;
+        } else {
+            if (p_val === 0) eqTangente = `y = ${mStr}`;
+            else eqTangente = `y = ${mStr} ${pSign} ${p_val}`;
+        }
+
+
+        // --- Construction du HTML de la solution ---
+        let htmlSol = `
+            <div class="step">
+                <h3>1. Calcul du nombre dérivé</h3>
+                <p>On cherche la limite quand \\( h \\) tend vers 0 du taux d'accroissement :
+                \\[ \\tau(h) = ${taux_expression_generic} \\] 
+                </p>
+                
+                <p><strong>Calcul de \\( f(${colorA}) \\) :</strong><br>
+                On remplace \\( x \\) par \\( ${colorA} \\) :
+                \\[ f(${colorA}) = ${f_a_subst} = ${fa} \\]
+                </p>
+
+                <p><strong>Calcul de \\( f(${colored_a_h}) \\) :</strong><br> 
+                En remplaçant \\( x \\) par \\( (${colored_a_h}) \\) :
+                \\[ f(${colored_a_h}) = ${substitution_tex} \\]
+                </p>
+
+                ${development_buttons_html}
+                
+                <p>En développant et réduisant (en utilisant les développements ci-dessus si nécessaire) :
+                \\[ f(${colored_a_h}) = ${developed_poly_h} \\]
+                </p>
+
+                <p><strong>Simplification du taux d'accroissement :</strong></p>
+                <p>On substitue les expressions de \\( f(${colored_a_h}) \\) et \\( f(${colorA}) \\) :</p>
+                \\[ ${taux_expression_generic} = \\frac{(${developed_poly_h}) - (${fa})}{h} \\] 
+                <p>Les termes constants s'éliminent (puisque \\( f(${colored_a_h}) \\) contient \\( f(${colorA}) \\)) :</p>
+                \\[ ${taux_expression_generic} = \\frac{${numerator_h}}{h} \\]
+                ${ numerator_h === "0" 
+                    ? `\\[ ${taux_expression_generic} = 0 \\]` 
+                    : `<p>On factorise le numérateur par \\( h \\) :</p>
+                       \\[ ${taux_expression_generic} = \\frac{h(${factorised_inside})}{h} \\]
+                       <p>On simplifie par \\( h \\) (pour \\( h \\neq 0 \\)) :</p>
+                       \\[ ${taux_expression_generic} = ${factorised_inside} \\]`
+                }
+                
+                <p><strong>Passage à la limite :</strong><br>
+                Comme \\( h \\to 0 \\), les termes contenant \\( h \\) tendent vers 0.
+                \\[ f'(${colorA}) = \\lim_{h \\to 0} (${factorised_inside}) = ${m} \\]
+                </p>
+                <p class="highlight">Le nombre dérivé de \\( f \\) en \\( ${colorA} \\) est \\( f'(${colorA}) = ${m} \\).</p>
+            </div>
+
+            <div class="step">
+                <h3>2. Interprétation graphique</h3>
+                <p>Le nombre dérivé \\( f'(${colorA}) = ${m} \\) est le <strong>coefficient directeur</strong> de la tangente \\( \\mathscr{T} \\) à la courbe \\( \\mathscr{C}_f \\) au point d'abscisse \\( ${colorA} \\).</p>
+            </div>
+
+            <div class="step">
+                <h3>3. Équation de la tangente</h3>
+                <p>L'équation est de la forme \\( y = mx + p \\).<br>
+                Nous avons trouvé \\( m = ${m} \\), donc \\( y = ${m}x + p \\).</p>
+                <p>La tangente passe par le point \\( A(${colorA}; f(${colorA})) \\), c'est-à-dire \\( A(${colorA}; ${fa}) \\).<br>
+                On détermine \\( p \\) :
+                \\[ f(${colorA}) = m \\times ${colorA} + p \\]
+                \\[ ${fa} = ${m} \\times ${a} + p \\]
+                \\[ p = ${fa} - (${m*a}) = ${p_val} \\]
+                </p>
+                <p class="highlight">L'équation réduite de la tangente est : \\[ ${eqTangente} \\]</p>
+            </div>
+        `;
+
+        let solDiv = document.getElementById('solution-text');
+        solDiv.innerHTML = htmlSol;
+        document.getElementById('solution-area').style.display = 'block';
+
+        if (window.MathJax) {
+            MathJax.typesetPromise([solDiv]);
+        }
+    }
+
+    // --- GESTION DE LA MODALE ---
+    function openModal() {
+        document.getElementById("copyrightModal").style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById("copyrightModal").style.display = "none";
+    }
+
+    // Fermeture si clic en dehors de la fenêtre
+    window.onclick = function(event) {
+        let modal = document.getElementById("copyrightModal");
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Génération initiale
+    window.onload = generateExercise;
+
+</script>
+
+</body>
+</html>
