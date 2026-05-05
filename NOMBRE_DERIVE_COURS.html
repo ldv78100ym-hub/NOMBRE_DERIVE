@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours et Exercices Dynamiques : Le Nombre Dérivé (STI2D / STL)</title>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #faf9f6;
+            --text-color: #2c3e50;
+            --primary: #2980b9;
+            --secondary: #7f8c8d;
+            --success: #27ae60;
+            --danger: #c0392b;
+            --warning: #f39c12;
+            --border: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        body.dys-mode {
+            font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+            font-size: 20px !important;
+            line-height: 2.2 !important;
+            letter-spacing: 0.15em !important;
+            word-spacing: 0.4em !important;
+            background-color: #fffde7;
+            color: #000;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        h1, h2, h3 {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        h1 {
+            text-align: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            margin-top: 40px;
+            border-left: 5px solid var(--primary);
+            padding-left: 15px;
+            background-color: #f1f8ff;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .box {
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+            border-left: 6px solid;
+            background-color: #f8f9fa;
+        }
+        .definition { border-color: var(--primary); background-color: #eaf2f8; }
+        .theoreme { border-color: var(--danger); background-color: #fdedec; color: #78281f; }
+        .propriete { border-color: var(--success); background-color: #e9f7ef; color: #145a32; }
+        .remarque { border-color: var(--secondary); background-color: #f2f4f4; font-style: italic; }
+
+        .box-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.1s;
+            margin: 5px;
+        }
+        button:hover { background-color: #1f618d; }
+        
+        .btn-success { background-color: var(--success); }
+        .btn-success:hover { background-color: #1e8449; }
+        
+        .btn-warning { background-color: var(--warning); color: #fff; }
+        .btn-warning:hover { background-color: #d68910; }
+
+        .canvas-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #fdfdfd;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        canvas {
+            background-color: white;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: crosshair;
+            max-width: 100%;
+        }
+
+        .exercice-box {
+            border: 2px solid var(--primary);
+            padding: 25px;
+            border-radius: 8px;
+            background-color: #ffffff;
+            margin-top: 40px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary);
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 10px;
+            font-size: 1.1em;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-family: monospace;
+        }
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 9999; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: #fff; 
+            margin: 8% auto; 
+            padding: 30px;
+            border: none; 
+            width: 85%; 
+            max-width: 650px; 
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+        .close { 
+            color: #7f8c8d; 
+            float: right; 
+            font-size: 32px; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
+
+        .strict-rule {
+            color: var(--danger);
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fdedec;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        #correction-area {
+            margin-top: 25px;
+            border-top: 2px dashed var(--success);
+            padding-top: 20px;
+        }
+
+        #downloadJsonBtn {
+            display: none;
+            text-decoration: none;
+            background-color: #8e44ad;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-controls">
+        <button onclick="toggleDys()" class="btn-warning">👁️ Mode Dys / Mal Voyant</button>
+        <button onclick="openModal()">⚖️ Droits d'auteur</button>
+    </div>
+
+    <h1>Cours et TP : Le Nombre Dérivé et la Tangente</h1>
+
+    <div class="remarque">
+        <div class="box-title">Règle Fondamentale des Calculs</div>
+        <p>Il est strictement interdit d'utiliser des valeurs approchées. Vous devez privilégier systématiquement les fractions irréductibles (ex: \(\dfrac{5}{2}\) au lieu de \(2.5\)).</p>
+    </div>
+
+    <h2>1. Le Taux de Variation et le Nombre Dérivé</h2>
+    
+    <div class="definition box">
+        <div class="box-title">Définitions</div>
+        <p>Le <strong>taux de variation</strong> d'une fonction \( f \) entre \( a \) et \( a+h \) (avec \( h \neq 0 \)) est donné par :</p>
+        <p style="text-align: center; font-size: 1.2em;">\[ \tau(h) = \dfrac{f(a+h) - f(a)}{h} \]</p>
+        <p>On dit que la fonction \( f \) est <strong>dérivable</strong> en \( a \) si ce taux de variation admet une limite réelle (finie) lorsque \( h \) tend vers \( 0 \).</p>
+        <p>Cette limite est le <strong>nombre dérivé</strong>, noté <strong>\( f'(a) \)</strong> :</p>
+        <p style="text-align: center; font-size: 1.3em;">\[ f'(a) = \lim_{h \to 0} \dfrac{f(a+h) - f(a)}{h} \]</p>
+    </div>
+
+    <h2>2. Interprétation Graphique : La Tangente</h2>
+
+    <div class="propriete box">
+        <div class="box-title">Propriété Géométrique</div>
+        <p>Le nombre dérivé <strong>\( f'(a) \)</strong> représente le <strong>coefficient directeur</strong> de la tangente à la courbe de \( f \) au point d'abscisse \( a \).</p>
+        <p>L'équation de cette tangente est :</p>
+        <p style="text-align: center; font-size: 1.3em; font-weight: bold; color: var(--danger);">\[ y = f'(a)(x - a) + f(a) \]</p>
+    </div>
+
+    <!-- ZONE CANVAS DYNAMIQUE -->
+    <div class="canvas-container">
+        <h3>Exploration Interactive (Génération Aléatoire)</h3>
+        <p>Voici la courbe d'une fonction <span id="canvas-deg-text"></span> générée aléatoirement.<br>
+        Survolez la courbe pour observer la tangente et le calcul en temps réel du nombre dérivé.</p>
+        <div style="font-size: 1.2em; margin: 15px 0; color: var(--primary);" id="canvas-function-latex"></div>
+        <canvas id="mathCanvas" width="600" height="400"></canvas>
+        <p id="canvas-info" style="font-weight: bold; color: var(--danger);"></p>
+        <button onclick="initCanvasPolynomial()">Générer une nouvelle courbe</button>
+    </div>
+
+    <!-- ZONE EXERCICE DYNAMIQUE -->
+    <div class="exercice-box" id="zone-exercice">
+        <h2>🎯 Travaux Pratiques (Évaluation)</h2>
+        <div class="strict-rule">
+            ⚠️ Consigne stricte : Aucune valeur approchée. Les coefficients doivent être exacts. N'utilisez pas d'espaces dans vos expressions algébriques.
+        </div>
+        
+        <p>Soit la fonction \( g \) définie sur \( \mathbb{R} \) par :</p>
+        <p style="text-align: center; font-size: 1.4em; font-weight: bold; color: var(--primary);" id="exercice-function-latex"></p>
+        <p>On s'intéresse au point d'abscisse <strong style="font-size: 1.2em;">\( a = <span id="valeur-a"></span> \)</strong>.</p>
+        
+        <div class="form-group">
+            <label>1. Calculer l'image de \( a \) par \( g \), soit \( g(a) \).</label>
+            <input type="text" id="rep1" placeholder="Ex: 12 ou -5">
+        </div>
+
+        <div class="form-group">
+            <label>2. Exprimer le taux de variation \( \dfrac{g(a+h) - g(a)}{h} \) sous forme simplifiée en fonction de \( h \).</label>
+            <p style="font-size: 0.9em; color: #555;">(Format attendu : écrivez l'expression développée et ordonnée sans espaces, ex: <code>2h^2-5h+3</code> ou <code>-4h+7</code>)</p>
+            <input type="text" id="rep2" placeholder="Ex: 3h+5">
+        </div>
+
+        <div class="form-group">
+            <label>3. En déduire la valeur du nombre dérivé \( g'(a) \).</label>
+            <input type="text" id="rep3" placeholder="Ex: 5">
+        </div>
+
+        <div class="form-group">
+            <label>4. Déterminer l'ordonnée à l'origine \( p \) de la tangente (sachant que \( y = mx + p \)).</label>
+            <input type="text" id="rep4" placeholder="Ex: 14">
+        </div>
+
+        <button class="btn-success" onclick="validerExercice()">Valider et voir la correction détaillée</button>
+        <button class="btn-warning" onclick="initExercicePolynomial()">Générer un nouveau problème</button>
+        <br>
+        <a id="downloadJsonBtn">📥 Télécharger mon fichier JSON (Réponses & Erreurs)</a>
+
+        <!-- Zone de correction dynamique -->
+        <div id="correction-area"></div>
+    </div>
+
+</div>
+
+<!-- Modale Droit d'auteur -->
+<div id="copyrightModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 style="margin-top:0;">⚖️ Droits d'Auteur et Licence d'Utilisation</h2>
+        <p>Auteur : Yann Merdy (yann.merdy@gmail.com) - Mai 2026</p>
+        <p>Licence d'Utilisation Non Commerciale<br>
+        Ce code HTML/CSS/JavaScript ainsi que le contenu généré par l'application ('Cours interactif et Exercices sur le nombre dérivé') sont la propriété intellectuelle exclusive de l'auteur, Yann Merdy.</p>
+        <p>Conditions :<br>
+        - Utilisation Privée et Éducative (Autorisée) : Vous êtes autorisé.e à utiliser, copier, modifier et distribuer ce code et son contenu uniquement à des fins personnelles, éducatives et non lucratives.<br>
+        - Utilisation Commerciale (Interdite) : Toute utilisation, distribution, intégration ou reproduction du code ou du contenu (total ou partiel) à des fins commerciales, lucratives ou professionnelles est strictement interdite sans un accord écrit préalable et explicite de l'auteur.<br>
+        - Attribution : Toute reproduction ou modification doit conserver la mention de l'auteur originale (Yann Merdy) et la présente notice de droits d'auteur.</p>
+    </div>
+</div>
+
+<script>
+    function toggleDys() { document.body.classList.toggle('dys-mode'); }
+    function openModal() { document.getElementById('copyrightModal').style.display = 'block'; }
+    function closeModal() { document.getElementById('copyrightModal').style.display = 'none'; }
+    window.onclick = function(e) { if(e.target == document.getElementById('copyrightModal')) closeModal(); }
+
+    // Utilitaires Mathématiques
+    function randInt(min, max, exclude = []) {
+        let val;
+        do {
+            val = Math.floor(Math.random() * (max - min + 1)) + min;
+        } while (exclude.includes(val));
+        return val;
+    }
+
+    function formatTerm(coef, deg, isFirst) {
+        if (coef === 0) return "";
+        let sign = coef > 0 ? (isFirst ? "" : "+") : "-";
+        let absCoef = Math.abs(coef);
+        let coefStr = (absCoef === 1 && deg > 0) ? "" : absCoef;
+        let xPart = deg === 0 ? "" : (deg === 1 ? "x" : `x^${deg}`);
+        return `${sign}${coefStr}${xPart}`;
+    }
+
+    function getPolyLatex(c3, c2, c1, c0, variable="x") {
+        let res = "";
+        let isFirst = true;
+        [ {c:c3, d:3}, {c:c2, d:2}, {c:c1, d:1}, {c:c0, d:0} ].forEach(term => {
+            if (term.c !== 0) {
+                let sign = term.c > 0 ? (isFirst ? "" : "+") : "-";
+                let absC = Math.abs(term.c);
+                let cStr = (absC === 1 && term.d > 0) ? "" : absC;
+                let varPart = term.d === 0 ? "" : (term.d === 1 ? variable : `${variable}^${term.d}`);
+                res += `${sign}${cStr}${varPart}`;
+                isFirst = false;
+            }
+        });
+        return res === "" ? "0" : res;
+    }
+
+    // --- CANVAS DYNAMIQUE ---
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    let f_c3 = 0, f_c2 = 0, f_c1 = 0, f_c0 = 0;
+    
+    function initCanvasPolynomial() {
+        let deg = Math.random() < 0.5 ? 2 : 3;
+        if(deg === 3) {
+            f_c3 = randInt(-2, 2, [0]) * 0.02; // Valeurs douces pour rester visible
+            f_c2 = randInt(-5, 5) * 0.05;
+            f_c1 = randInt(-2, 2);
+            document.getElementById('canvas-deg-text').innerText = "polynôme de degré 3";
+        } else {
+            f_c3 = 0;
+            f_c2 = randInt(-3, 3, [0]) * 0.1;
+            f_c1 = randInt(-2, 2);
+            document.getElementById('canvas-deg-text').innerText = "polynôme de degré 2";
+        }
+        f_c0 = 0; // Passe par l'origine pour la beauté graphique
+        
+        // Affichage LaTeX de la fonction du canvas
+        // On multiplie par des entiers virtuels pour l'affichage propre ou on affiche les décimales
+        let latexStr = `\\[ f(x) = ${f_c3 !== 0 ? f_c3.toFixed(2)+'x^3' : ''} ${f_c2 !== 0 ? (f_c2>0?'+':'')+f_c2.toFixed(2)+'x^2' : ''} ${f_c1 !== 0 ? (f_c1>0?'+':'')+f_c1+'x' : ''} \\]`;
+        document.getElementById('canvas-function-latex').innerHTML = latexStr.replace(/\+\-/g, '-');
+        if(window.MathJax) MathJax.typesetPromise([document.getElementById('canvas-function-latex')]);
+        
+        drawCanvasScene(canvas.width / 2);
+    }
+
+    function f_val(x) { return f_c3*x*x*x + f_c2*x*x + f_c1*x + f_c0; }
+    function df_val(x) { return 3*f_c3*x*x + 2*f_c2*x + f_c1; }
+
+    function drawCanvasScene(mouseX) {
+        let w = canvas.width; let h = canvas.height;
+        let originX = w / 2; let originY = h / 2;
+        let scale = 20;
+
+        ctx.clearRect(0, 0, w, h);
+        
+        // Grille
+        ctx.strokeStyle = '#ecf0f1'; ctx.lineWidth = 1;
+        for(let i=0; i<w; i+=scale) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); }
+        for(let i=0; i<h; i+=scale) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
+        
+        // Axes
+        ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(w, originY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(originX, 0); ctx.lineTo(originX, h); ctx.stroke();
+
+        // Courbe
+        ctx.strokeStyle = '#2980b9'; ctx.lineWidth = 3; ctx.beginPath();
+        for(let px = 0; px <= w; px++) {
+            let mx = (px - originX) / scale;
+            let my = f_val(mx);
+            let py = originY - (my * scale);
+            if(px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Tangente
+        let mathMouseX = (mouseX - originX) / scale;
+        mathMouseX = Math.max(-10, Math.min(10, mathMouseX));
+        let my = f_val(mathMouseX);
+        let pente = df_val(mathMouseX);
+        
+        let py = originY - (my * scale);
+        let px = originX + (mathMouseX * scale);
+
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2; ctx.beginPath();
+        let s_mx = mathMouseX - 10; let s_my = pente * (s_mx - mathMouseX) + my;
+        let e_mx = mathMouseX + 10; let e_my = pente * (e_mx - mathMouseX) + my;
+        ctx.moveTo(originX + s_mx*scale, originY - s_my*scale);
+        ctx.lineTo(originX + e_mx*scale, originY - e_my*scale);
+        ctx.stroke();
+
+        // Point
+        ctx.fillStyle = '#27ae60'; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill();
+
+        document.getElementById('canvas-info').innerText = `En a = ${mathMouseX.toFixed(2)}, le nombre dérivé est f'(a) = ${pente.toFixed(2)}`;
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        drawCanvasScene(e.clientX - canvas.getBoundingClientRect().left);
+    });
+
+    // --- EXERCICE DYNAMIQUE ---
+    let ex_c3 = 0, ex_c2 = 0, ex_c1 = 0, ex_c0 = 0;
+    let ex_a = 0;
+    // Réponses attendues
+    let ans_ga = 0, ans_taux = "", ans_deriv = 0, ans_p = 0;
+
+    function initExercicePolynomial() {
+        document.getElementById('correction-area').innerHTML = "";
+        document.getElementById('downloadJsonBtn').style.display = "none";
+        
+        let deg = Math.random() < 0.5 ? 2 : 3;
+        if (deg === 3) {
+            ex_c3 = randInt(-2, 2, [0]);
+            ex_c2 = randInt(-3, 3);
+            ex_c1 = randInt(-4, 4);
+        } else {
+            ex_c3 = 0;
+            ex_c2 = randInt(-4, 4, [0]);
+            ex_c1 = randInt(-5, 5);
+        }
+        ex_c0 = randInt(-5, 5);
+        ex_a = randInt(-3, 3);
+
+        let latexEq = `\\[ g(x) = ${getPolyLatex(ex_c3, ex_c2, ex_c1, ex_c0)} \\]`;
+        document.getElementById('exercice-function-latex').innerHTML = latexEq;
+        document.getElementById('valeur-a').innerText = ex_a;
+
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('zone-exercice')]);
+
+        // Calculs des réponses attendues
+        ans_ga = ex_c3*Math.pow(ex_a,3) + ex_c2*Math.pow(ex_a,2) + ex_c1*ex_a + ex_c0;
+        
+        // Taux de variation : 
+        // Si degré 3 : c3(h^2 + 3ah + 3a^2) + c2(h + 2a) + c1
+        // Taux = c3*h^2 + (3*c3*a + c2)*h + (3*c3*a^2 + 2*c2*a + c1)
+        let taux_h2 = ex_c3;
+        let taux_h = 3*ex_c3*ex_a + ex_c2;
+        let taux_c = 3*ex_c3*ex_a*ex_a + 2*ex_c2*ex_a + ex_c1;
+        
+        ans_taux = getPolyLatex(0, taux_h2, taux_h, taux_c, "h");
+        ans_deriv = taux_c;
+        ans_p = ans_ga - ans_deriv * ex_a;
+
+        // Reset inputs
+        ['rep1', 'rep2', 'rep3', 'rep4'].forEach(id => document.getElementById(id).value = "");
+    }
+
+    function normalizeExpr(expr) {
+        return expr.replace(/\s+/g, '').replace(/\+1h/g, '+h').replace(/\-1h/g, '-h').replace(/^1h/g, 'h');
+    }
+
+    function validerExercice() {
+        let r1 = document.getElementById('rep1').value.trim();
+        let r2 = normalizeExpr(document.getElementById('rep2').value);
+        let r3 = document.getElementById('rep3').value.trim();
+        let r4 = document.getElementById('rep4').value.trim();
+
+        let erreurs = [];
+        if (r1 !== ans_ga.toString()) erreurs.push({ question: 1, saisie: r1, attendu: ans_ga.toString() });
+        if (r2 !== normalizeExpr(ans_taux)) erreurs.push({ question: 2, saisie: r2, attendu: ans_taux });
+        if (r3 !== ans_deriv.toString()) erreurs.push({ question: 3, saisie: r3, attendu: ans_deriv.toString() });
+        if (r4 !== ans_p.toString()) erreurs.push({ question: 4, saisie: r4, attendu: ans_p.toString() });
+
+        const donneeEleve = {
+            horodatage: new Date().toISOString(),
+            module: "Nombre Dérivé - Exercice Dynamique",
+            fonction: `g(x) = ${getPolyLatex(ex_c3, ex_c2, ex_c1, ex_c0)}`,
+            point_a: ex_a,
+            reponses_soumises: { Q1_ga: r1, Q2_Taux: r2, Q3_Derivee: r3, Q4_Ordonnee: r4 },
+            bilan_erreurs: erreurs,
+            score: (4 - erreurs.length) + "/4"
+        };
+
+        const jsonString = JSON.stringify(donneeEleve, null, 4);
+        const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(jsonString);
+        const btnDownload = document.getElementById('downloadJsonBtn');
+        btnDownload.setAttribute("href", dataUri);
+        btnDownload.setAttribute("download", "Resultats_Derivee_Dynamique.json");
+        btnDownload.style.display = "inline-block";
+
+        afficherCorrection();
+    }
+
+    function afficherCorrection() {
+        let zone = document.getElementById('correction-area');
+        
+        let devA_h_3 = ex_c3 !== 0 ? `<p>On utilise l'identité remarquable \\((A+B)^3\\) :<br>\\[ ${ex_c3}(${ex_a}+h)^3 = ${ex_c3}(${Math.pow(ex_a,3)} + 3(${Math.pow(ex_a,2)})h + 3(${ex_a})h^2 + h^3) \\]</p>` : "";
+        let devA_h_2 = ex_c2 !== 0 ? `<p>On utilise l'identité remarquable \\((A+B)^2\\) :<br>\\[ ${ex_c2}(${ex_a}+h)^2 = ${ex_c2}(${Math.pow(ex_a,2)} + 2(${ex_a})h + h^2) \\]</p>` : "";
+
+        let html = `
+            <div class="propriete box">
+                <div class="box-title">Correction Pédagogique Détaillée</div>
+                <h4 style="color:var(--primary);">1. Calcul de \\( g(${ex_a}) \\)</h4>
+                <p>\\[ g(${ex_a}) = ${ex_c3 !== 0 ? ex_c3+'('+ex_a+')^3 +' : ''} ${ex_c2 !== 0 ? ex_c2+'('+ex_a+')^2 +' : ''} ${ex_c1 !== 0 ? ex_c1+'('+ex_a+') +' : ''} ${ex_c0} = ${ans_ga} \\]</p>
+                
+                <h4 style="color:var(--primary);">2. Taux de variation</h4>
+                <p>On développe minutieusement \\( g(${ex_a}+h) \\) :</p>
+                ${devA_h_3}
+                ${devA_h_2}
+                <p>Après développement complet et soustraction de \\( g(${ex_a}) \\), tous les termes constants s'annulent.</p>
+                <p>Il reste : \\( g(${ex_a}+h) - g(${ex_a}) = h( ${ans_taux} ) \\)</p>
+                <p>Le taux de variation est donc : \\[ \\tau(h) = \\frac{h( ${ans_taux} )}{h} = \\mathbf{${ans_taux}} \\]</p>
+
+                <h4 style="color:var(--primary);">3. Le nombre dérivé</h4>
+                <p>On applique le passage à la limite quand \\( h \\to 0 \\) sur le taux de variation :</p>
+                <p>\\[ g'(${ex_a}) = \\lim_{h \\to 0} ( ${ans_taux} ) = \\mathbf{${ans_deriv}} \\]</p>
+
+                <h4 style="color:var(--primary);">4. L'ordonnée à l'origine (Tangente)</h4>
+                <p>La formule fondamentale est : \\( y = g'(${ex_a})(x - ${ex_a}) + g(${ex_a}) \\)</p>
+                <p>\\[ y = ${ans_deriv}(x - (${ex_a})) + (${ans_ga}) \\]</p>
+                <p>\\[ y = ${ans_deriv}x - (${ans_deriv * ex_a}) + (${ans_ga}) \\]</p>
+                <p>\\[ y = ${ans_deriv}x ${ans_p >= 0 ? '+ '+ans_p : ans_p} \\]</p>
+                <p>L'ordonnée à l'origine est donc \\( p = \\mathbf{${ans_p}} \\).</p>
+            </div>
+        `;
+        zone.innerHTML = html;
+        if (window.MathJax) MathJax.typesetPromise([zone]);
+    }
+
+    // Initialisation
+    window.onload = () => {
+        initCanvasPolynomial();
+        initExercicePolynomial();
+    };
+</script>
+
+</body>
+</html>
